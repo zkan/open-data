@@ -1,3 +1,2 @@
-# Play with Open Data
-
+# Open Data
 

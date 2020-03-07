@@ -1,4 +1,5 @@
 import os
+import time
 from dataclasses import dataclass
 
 import requests
@@ -12,18 +13,17 @@ class Location:
     lng: float
 
 
-if __name__ == '__main__':
-    api_key = os.environ.get('API_KEY')
-    print(api_key)
-    query = '7-Eleven Thailand'
-    url = f'https://maps.googleapis.com/maps/api/place/textsearch/json?query={query}&key={api_key}'
+def get_data_from_api(url, query, api_key, pagetoken=None):
+    if pagetoken:
+        url += f'&pagetoken={pagetoken}'
+        print(url)
 
     resp = requests.get(url)
-    data = resp.json()
+    return resp.json()
 
-    error_message = data.get('error_message')
-    next_page_token = data.get('next_page_token')
-    results = data.get('results')
+
+def get_locations(results):
+    locations = []
 
     for each in results:
         name = each.get('name')
@@ -39,7 +39,43 @@ if __name__ == '__main__':
             lat=lat,
             lng=lng
         )
-        print(location)
+        locations.append(location)
 
+    return locations
+
+
+if __name__ == '__main__':
+    api_key = os.environ.get('API_KEY')
+    query = '7-Eleven Thailand'
+    url = f'https://maps.googleapis.com/maps/api/place/textsearch/json?query={query}&key={api_key}'
+
+    data = get_data_from_api(url, query, api_key)
+
+    status = data.get('status')
+    error_message = data.get('error_message')
+    next_page_token = data.get('next_page_token')
+    results = data.get('results')
+    locations = get_locations(results)
+
+    print(locations)
+    print(len(locations))
     print(next_page_token)
     print(error_message)
+
+    while next_page_token:
+        data = get_data_from_api(url, query, api_key, pagetoken=next_page_token)
+
+        status = data.get('status')
+        if status == 'INVALID_REQUEST':
+            time.sleep(5)
+            continue
+
+        error_message = data.get('error_message')
+        next_page_token = data.get('next_page_token')
+        results = data.get('results')
+        locations = locations + get_locations(results)
+
+        print(locations)
+        print(len(locations))
+        print(next_page_token)
+        print(error_message)

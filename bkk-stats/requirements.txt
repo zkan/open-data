@@ -1,7 +1,7 @@
 chardet==3.0.4
 pdfminer.six==20200104
 pdfplumber==0.5.16
-Pillow==7.0.0
+Pillow==9.0.1
 pycryptodome==3.9.7
 six==1.14.0
 sortedcontainers==2.1.0
